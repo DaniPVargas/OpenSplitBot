@@ -110,7 +110,7 @@ def format_exchanges(exchanges):
     else:
         message = "The following exchanges are needed to balance the group account:\n"
         for exchange in exchanges:
-            message += f"· {exchange["payer"]} owes {exchange["amount"]:.2f}€ to {exchange["receiver"]}\n" 
+            message += f"· {exchange['payer']} owes {exchange['amount']:.2f}€ to {exchange['receiver']}\n" 
         return message
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
