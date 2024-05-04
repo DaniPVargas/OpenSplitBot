@@ -167,7 +167,7 @@ async def payer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     context.chat_data['amount'] = float(update.message.text.replace(",", ".").replace("€", ""))
-    await update.message.reply_text(f'We are almost done! Finally, Enter the users to whom {context.chat_data['payer']} has paid, separated by spaces. Remember to mention them using @.',
+    await update.message.reply_text(f"We are almost done! Finally, Enter the users to whom {context.chat_data['payer']} has paid, separated by spaces. Remember to mention them using @.",
                                     reply_markup=ForceReply(selective=True))
     return RECEIVERS
 
