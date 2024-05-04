@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-# pylint: disable=unused-argument
-# This program is dedicated to the public domain under the CC0 license.
 
 import logging
 import requests
@@ -23,19 +21,20 @@ backend_port = "8080"
 base_url = f"http://{backend_ip}:{backend_port}"
 groups_base_url = f"{base_url}/groups"
 
+# States for add expense dialog
 NAME, PAYER, AMOUNT, RECEIVERS = range(4)
 
 
 async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_type = update.message.chat.type
     if chat_type == "private":
-        group_id = update.message.chat["id"]
-        #await update.message.reply_text("Obtaining balance...")
+        username = update.message.from_user.username
+        await update.message.reply_text(f"TODO: Obtain balance for {username}")
         #url = f"{groups_base_url}/{group_id}/balance"
         #requests.get(url)
     else:
         group_id = update.message.chat["id"]
-        #await update.message.reply_text("Obtaining balance...")
+        await update.message.reply_text(f"TODO: Obtain balance for group {group_id}")
         #url = f"{groups_base_url}/{group_id}/balance"
         #requests.get(url)
 
@@ -135,10 +134,10 @@ def main() -> None:
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("add_expense", add_expense)],
         states={
-            NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, name)],
-            PAYER: [MessageHandler(filters.TEXT & filters.Entity("mention"), payer)],
-            AMOUNT: [MessageHandler(filters.TEXT & filters.Regex(r"^(?:[1-9]\d*|0)?(?:[.,]\d+)?€?$"), amount)],
-            RECEIVERS: [MessageHandler(filters.TEXT & filters.Entity("mention"), receivers)],
+            NAME: [MessageHandler((filters.ChatType.GROUP | filters.ChatType.SUPERGROUP) & filters.TEXT & ~filters.COMMAND, name)],
+            PAYER: [MessageHandler((filters.ChatType.GROUP | filters.ChatType.SUPERGROUP) & filters.TEXT & filters.Entity("mention"), payer)],
+            AMOUNT: [MessageHandler((filters.ChatType.GROUP | filters.ChatType.SUPERGROUP) & filters.TEXT & filters.Regex(r"^(?:[1-9]\d*|0)?(?:[.,]\d+)?€?$"), amount)],
+            RECEIVERS: [MessageHandler((filters.ChatType.GROUP | filters.ChatType.SUPERGROUP) & filters.TEXT & filters.Entity("mention"), receivers)],
         },
         fallbacks=[CommandHandler("cancel", cancel),
                    MessageHandler(filters.ALL , handle_unexpected_input)],
