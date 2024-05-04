@@ -117,9 +117,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     with open('help.json', "r") as fp:
         data = json.load(fp)
     
-    message = f"{data["message"]}\n\n"
+    message = f"{data['message']}\n\n"
     for command in data["commands"].keys():
-        message += f"/{command}: {data["commands"][command]}\n"
+        message += f"/{command}: {data['commands'][command]}\n"
         
     await update.message.reply_text(f"{message}", do_quote=False)
 
@@ -136,7 +136,7 @@ async def register_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 logger.error(f"{response.status_code}:{response.text}")
                 message = "Error adding group to OpenSplit. Please try it again later."
             else:
-                message = f"{update.message.chat["title"]} has been added to OpenSplit."
+                message = f"{update.message.chat['title']} has been added to OpenSplit."
             await update.message.reply_text(message, do_quote=False)
 
 
