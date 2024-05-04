@@ -75,19 +75,17 @@ def format_balance(balance: dict):
             for n, b in users_who_owe.items():
                 message += f"{n} : {b:.2f}€\n"
         if users_who_are_owed:
-            message += "Users who are owed money:\n"
+            message += "\nUsers who are owed money:\n"
             for n, b in users_who_are_owed.items():
                 message += f"{n} : {b:.2f}€\n"
         if users_in_balance:
-            message += "Users who don't owe and aren't owed:\n"
+            message += "\nUsers who don't owe and aren't owed:\n"
             for n, b in users_in_balance.items():
                 message += f"{n} : {b:.2f}€\n"
         return message
 
 
 async def calculate_exchanges(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    mock_content = [{"payer": "@DaniPVargas", "receiver": "@sergioalvper", "amount": 36.5},
-                    {"payer": "@CastilloDel", "receiver": "@AntonGomez", "amount": 34.2}]
     chat_type = update.message.chat.type
     if chat_type == "private":
         await update.message.reply_text("Sorry, this function is only available for group chats.")
@@ -95,14 +93,13 @@ async def calculate_exchanges(update: Update, context: ContextTypes.DEFAULT_TYPE
         group_id = update.message.chat["id"]
         url = f"{base_url}groups/{group_id}/exchanges"
         headers = {"Content-Type": "application/json"}
-        # response = requests.get(url, headers=headers)
-        if 200 != 200:  # response.status_code != 200:
-            # logger.error(f"{response.status_code}:{response.text}")
+        response = requests.get(url, headers=headers)
+        if response.status_code != 200:
+            logger.error(f"{response.status_code}:{response.text}")
             await update.message.reply_text("Error obtaining group exchanges. Please try again later.",
                                             do_quote=False)
         else:
-            # exchanges = response.json()
-            exchanges = mock_content
+            exchanges = response.json()
             message = format_exchanges(exchanges)
             await update.message.reply_text(message, do_quote=False)
 
@@ -211,7 +208,7 @@ async def handle_unexpected_input(update: Update, context: CallbackContext) -> N
 
 async def web_login(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Sends a message with three inline buttons attached."""
-    keyboard = [[InlineKeyboardButton("Login in web", login_url=LoginUrl("https://opensplit.onrender.com/home"))]]
+    keyboard = [[InlineKeyboardButton("Login in web", login_url=LoginUrl("https://opensplit.netlify.app/home"))]]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
