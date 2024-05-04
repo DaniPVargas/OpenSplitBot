@@ -16,10 +16,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
-backend_ip = "127.0.0.1"
-backend_port = "8080"
-base_url = f"http://{backend_ip}:{backend_port}"
-groups_base_url = f"{base_url}/groups"
+base_url = f"https://opensplitbackend.onrender.com/"
 
 # States for add expense dialog
 NAME, PAYER, AMOUNT, RECEIVERS = range(4)
@@ -29,26 +26,92 @@ async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_type = update.message.chat.type
     if chat_type == "private":
         username = update.message.from_user.username
-        await update.message.reply_text(f"TODO: Obtain balance for {username}")
-        #url = f"{groups_base_url}/{group_id}/balance"
-        #requests.get(url)
+        url = f"{base_url}users/@{username}/balance"
+        headers = {"Content-Type": "application/json"}
+        response = requests.get(url, headers=headers)
+        if response.status_code != 200:
+            logger.error(f"{response.status_code}:{response.text}")
+            await update.message.reply_text(f"Error obtaining {username} balance. Please try again later.",
+                                            do_quote=False)
+        else:
+            balance = response.json()
+            message = format_user_balance(balance)
+            await update.message.reply_text(message, do_quote=False)
     else:
         group_id = update.message.chat["id"]
-        await update.message.reply_text(f"TODO: Obtain balance for group {group_id}")
-        #url = f"{groups_base_url}/{group_id}/balance"
-        #requests.get(url)
+        url = f"{base_url}groups/{group_id}/balance"
+        headers = {"Content-Type": "application/json"}
+        response = requests.get(url, headers=headers)
+        if response.status_code != 200:
+            logger.error(f"{response.status_code}:{response.text}")
+            await update.message.reply_text("Error obtaining group balance. Please try again later.",
+                                            do_quote=False)
+        else:
+            balance = response.json()
+            message = format_balance(balance)
+            await update.message.reply_text(message, do_quote=False)
+
+def format_user_balance(balance: dict):
+    if not balance:
+        return "You don't belong to any group account."
+    else:
+        message = ""
+        for g, d in balance.items():
+            message += f"Group \"{g}\": {d:.2f}€\n"
+        return message
+
+
+def format_balance(balance: dict):
+    if all(x == 0 for x in balance.values()):
+        return "The group account is balanced."
+    else:
+        message = ""
+        users_who_owe = {n: b for n, b in balance.items() if b < 0}
+        users_who_are_owed = {n: b for n, b in balance.items() if b > 0}
+        users_in_balance = {n: b for n, b in balance.items() if b == 0}
+        if users_who_owe:
+            message += "Users who owe money:\n"
+            for n,b in users_who_owe.items():
+                message += f"{n} : {b:.2f}€\n"
+        if users_who_are_owed:
+            message += "Users who are owed money:\n"
+            for n,b in users_who_are_owed.items():
+                message += f"{n} : {b:.2f}€\n"
+        if users_in_balance:
+            message += "Users who don't owe and aren't owed:\n"
+            for n,b in users_in_balance.items():
+                message += f"{n} : {b:.2f}€\n"
+        return message
 
 
 async def calculate_exchanges(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    mock_content = [{"payer":"@DaniPVargas", "receiver": "@sergioalvper", "amount": 36.5}, {"payer":"@CastilloDel", "receiver": "@AntonGomez" , "amount": 34.2}]
     chat_type = update.message.chat.type
     if chat_type == "private":
         await update.message.reply_text("Sorry, this function is only available for group chats.")
     else:
         group_id = update.message.chat["id"]
-        await update.message.reply_text("Calculate exchanges...")
-        url = f"{groups_base_url}/{group_id}/balance"
-        # requests.get(url)
+        url = f"{base_url}groups/{group_id}/exchanges"
+        headers = {"Content-Type": "application/json"}
+        #response = requests.get(url, headers=headers)
+        if 200 != 200:#response.status_code != 200:
+            #logger.error(f"{response.status_code}:{response.text}")
+            await update.message.reply_text("Error obtaining group exchanges. Please try again later.",
+                                            do_quote=False)
+        else:
+            #exchanges = response.json()
+            exchanges = mock_content
+            message = format_exchanges(exchanges)
+            await update.message.reply_text(message, do_quote=False)
 
+def format_exchanges(exchanges):
+    if not exchanges:
+        return "No money exchanges are needed."
+    else:
+        message = "The following exchanges are needed to balance the group account:\n"
+        for exchange in exchanges:
+            message += f"· {exchange["payer"]} owes {exchange["amount"]:.2f}€ to {exchange["receiver"]}\n" 
+        return message
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     with open('help.json', "r") as fp:
@@ -66,15 +129,21 @@ async def register_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         if member.username == "opensplit_bot":
             group_id = update.message.chat["id"]
             data = {"name": update.message.chat["title"]}
-            url = f"{groups_base_url}/{group_id}"
-            # requests.put(url, data=data)
-            await update.message.reply_text(f"{update.message.chat["title"]} added to OpenSplit.", do_quote=False)
+            headers = {"Content-Type": "application/json"}
+            url = f"{base_url}groups/{group_id}"
+            response = requests.put(url, headers=headers, data=json.dumps(data))
+            if response.status_code != 200:
+                logger.error(f"{response.status_code}:{response.text}")
+                message = "Error adding group to OpenSplit. Please try it again later."
+            else:
+                message = f"{update.message.chat["title"]} has been added to OpenSplit."
+            await update.message.reply_text(message, do_quote=False)
 
 
 async def add_expense(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_type = update.message.chat.type
     if chat_type == "private":
-        await update.message.reply_text("Sorry, this function is only available for group chats.")
+        await update.message.reply_text("Sorry, this function is only available for group chats.", do_quote=False)
         return ConversationHandler.END
     else:
         await update.message.reply_text("Please, enter the name of the new expense.", reply_markup=ForceReply(selective=True))
@@ -97,7 +166,7 @@ async def payer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    context.chat_data['amount'] = float(update.message.text.replace(",", "."))
+    context.chat_data['amount'] = float(update.message.text.replace(",", ".").replace("€", ""))
     await update.message.reply_text(f'We are almost done! Finally, Enter the users to whom {context.chat_data['payer']} has paid, separated by spaces. Remember to mention them using @.',
                                     reply_markup=ForceReply(selective=True))
     return RECEIVERS
@@ -109,9 +178,15 @@ async def receivers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     body = {"name": context.chat_data['name'], "payer": context.chat_data['payer'],
             "amount": context.chat_data['amount'], "receivers": context.chat_data["receivers"]}
     group_id = update.message.chat["id"]
-    url = f"{groups_base_url}/{group_id}/expenses"
-    # requests.post(url, data = body)
-    await update.message.reply_text(f"{body}")
+    headers = {"Content-Type": "application/json"}
+    url = f"{base_url}groups/{group_id}/expenses"
+    response = requests.post(url, headers = headers, data = json.dumps(body))
+    if response.status_code != 200:
+        logger.error(f"{response.status_code}:{response.text}")
+        message = "Error adding the new expense. Please try again later."
+    else:
+        message = "The new expense has been added correctly."
+    await update.message.reply_text(message, do_quote=False)
     return ConversationHandler.END
 
 
