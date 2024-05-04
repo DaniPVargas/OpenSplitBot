@@ -4,6 +4,7 @@
 
 import logging
 import requests
+import json
 
 from telegram import ForceReply, Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters, ConversationHandler, CallbackContext
@@ -40,15 +41,25 @@ async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def calculate_exchanges(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    group_id = update.message.chat["id"]
-    await update.message.reply_text("Calculate exchanges...")
-    url = f"{groups_base_url}/{group_id}/balance"
-    # requests.get(url)
+    chat_type = update.message.chat.type
+    if chat_type == "private":
+        await update.message.reply_text("Sorry, this function is only available for group chats.")
+    else:
+        group_id = update.message.chat["id"]
+        await update.message.reply_text("Calculate exchanges...")
+        url = f"{groups_base_url}/{group_id}/balance"
+        # requests.get(url)
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Send a message when the command /help is issued."""
-    await update.message.reply_text("List of commands and descriptions", do_quote=False)
+    with open('help.json', "r") as fp:
+        data = json.load(fp)
+    
+    message = f"{data["message"]}\n\n"
+    for command in data["commands"].keys():
+        message += f"/{command}: {data["commands"][command]}\n"
+        
+    await update.message.reply_text(f"{message}", do_quote=False)
 
 
 async def register_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -62,8 +73,13 @@ async def register_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 async def add_expense(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("Please, enter the name of the new expense.", reply_markup=ForceReply(selective=True))
-    return NAME
+    chat_type = update.message.chat.type
+    if chat_type == "private":
+        await update.message.reply_text("Sorry, this function is only available for group chats.")
+        return ConversationHandler.END
+    else:
+        await update.message.reply_text("Please, enter the name of the new expense.", reply_markup=ForceReply(selective=True))
+        return NAME
 
 
 async def name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -101,10 +117,7 @@ async def receivers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    # TODO: Rewrite for our bot
-    user = update.message.from_user
-    logger.info("User %s canceled the conversation.", user.first_name)
-    await update.message.reply_text("Bye! I hope we can talk again some day.")
+    await update.message.reply_text("The expense addition has been canceled")
     return ConversationHandler.END
 
 

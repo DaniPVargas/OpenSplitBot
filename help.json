@@ -1,0 +1,9 @@
+{
+    "message": "OpenSplitBot helps you and your friends to organise your group expenses. The following commands are available:",
+    "commands": {
+        "help": "Show this text",
+        "balance": "Show the group balance, if it's called inside a group. If it's called in a private chat, shows the user's balances in each of their groups",
+        "add_expense": "Add new expense to the group account. Only available inside groups.",
+        "calculate_exchanges": "Shows the least number of money exchanges to balance the group account. Only available inside groups"
+    }
+}
