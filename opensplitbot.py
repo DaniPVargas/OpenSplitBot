@@ -134,10 +134,10 @@ def main() -> None:
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("add_expense", add_expense)],
         states={
-            NAME: [MessageHandler((filters.ChatType.GROUP | filters.ChatType.SUPERGROUP) & filters.TEXT & ~filters.COMMAND, name)],
-            PAYER: [MessageHandler((filters.ChatType.GROUP | filters.ChatType.SUPERGROUP) & filters.TEXT & filters.Entity("mention"), payer)],
-            AMOUNT: [MessageHandler((filters.ChatType.GROUP | filters.ChatType.SUPERGROUP) & filters.TEXT & filters.Regex(r"^(?:[1-9]\d*|0)?(?:[.,]\d+)?€?$"), amount)],
-            RECEIVERS: [MessageHandler((filters.ChatType.GROUP | filters.ChatType.SUPERGROUP) & filters.TEXT & filters.Entity("mention"), receivers)],
+            NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, name)],
+            PAYER: [MessageHandler(filters.TEXT & filters.Entity("mention"), payer)],
+            AMOUNT: [MessageHandler(filters.TEXT & filters.Regex(r"^(?:[1-9]\d*|0)?(?:[.,]\d+)?€?$"), amount)],
+            RECEIVERS: [MessageHandler(filters.TEXT & filters.Entity("mention"), receivers)],
         },
         fallbacks=[CommandHandler("cancel", cancel),
                    MessageHandler(filters.ALL , handle_unexpected_input)],
