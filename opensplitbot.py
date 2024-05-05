@@ -71,13 +71,13 @@ def format_user_balance(balance):
 
 
 def format_balance(balance: dict):
-    if all(x == 0 for x in balance.values()):
+    if all(abs(x) < 1e-15 for x in balance.values()):
         return "The group account is balanced."
     else:
         message = ""
         users_who_owe = {n: b for n, b in balance.items() if b < 0}
         users_who_are_owed = {n: b for n, b in balance.items() if b > 0}
-        users_in_balance = {n: b for n, b in balance.items() if b == 0}
+        users_in_balance = {n: b for n, b in balance.items() if abs(b) < 1e-15}
         if users_who_owe:
             message += "Users who owe money:\n"
             for n, b in users_who_owe.items():
