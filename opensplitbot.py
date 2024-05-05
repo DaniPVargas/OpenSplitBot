@@ -22,12 +22,18 @@ base_url = f"https://opensplitbackend.onrender.com/"
 NAME, PAYER, AMOUNT, RECEIVERS = range(4)
 
 
+def get_bot_token() -> str:
+    with open("BOT_API_KEY", "r") as fp:
+        token = fp.read()
+    return token
+
 async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_type = update.message.chat.type
+    token = get_bot_token()
     if chat_type == "private":
         username = update.message.from_user.username
         url = f"{base_url}users/@{username}/balance"
-        headers = {"Content-Type": "application/json"}
+        headers = {"Content-Type": "application/json", "Authorization": token}
         response = requests.get(url, headers=headers)
         if response.status_code != 200:
             logger.error(f"{response.status_code}:{response.text}")
@@ -40,7 +46,7 @@ async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     else:
         group_id = update.message.chat["id"]
         url = f"{base_url}groups/{group_id}/balance"
-        headers = {"Content-Type": "application/json"}
+        headers = {"Content-Type": "application/json", "Authorization": token}
         response = requests.get(url, headers=headers)
         if response.status_code != 200:
             logger.error(f"{response.status_code}:{response.text}")
@@ -86,13 +92,14 @@ def format_balance(balance: dict):
 
 
 async def calculate_exchanges(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    token = get_bot_token()
     chat_type = update.message.chat.type
     if chat_type == "private":
         await update.message.reply_text("Sorry, this function is only available for group chats.")
     else:
         group_id = update.message.chat["id"]
         url = f"{base_url}groups/{group_id}/exchanges"
-        headers = {"Content-Type": "application/json"}
+        headers = {"Content-Type": "application/json", "Authorization": token}
         response = requests.get(url, headers=headers)
         if response.status_code != 200:
             logger.error(f"{response.status_code}:{response.text}")
@@ -127,11 +134,12 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def register_group(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    token = get_bot_token()
     for member in update.message.new_chat_members:
         if member.username == "opensplit_bot":
             group_id = update.message.chat["id"]
             data = {"name": update.message.chat["title"]}
-            headers = {"Content-Type": "application/json"}
+            headers = {"Content-Type": "application/json", "Authorization": token}
             url = f"{base_url}groups/{group_id}"
             response = requests.put(
                 url, headers=headers, data=json.dumps(data))
@@ -183,7 +191,8 @@ async def receivers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     body = {"name": context.chat_data['name'], "payer": context.chat_data['payer'],
             "amount": context.chat_data['amount'], "receivers": context.chat_data["receivers"]}
     group_id = update.message.chat["id"]
-    headers = {"Content-Type": "application/json"}
+    token = get_bot_token()
+    headers = {"Content-Type": "application/json", "Authorization": token}
     url = f"{base_url}groups/{group_id}/expenses"
     response = requests.post(url, headers=headers, data=json.dumps(body))
     if response.status_code != 200:
@@ -208,7 +217,7 @@ async def handle_unexpected_input(update: Update, context: CallbackContext) -> N
 
 async def web_login(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Sends a message with three inline buttons attached."""
-    keyboard = [[InlineKeyboardButton("Login in web", login_url=LoginUrl("https://www.opensplit.co/home"))]]
+    keyboard = [[InlineKeyboardButton("Login in web", login_url=LoginUrl("https://opensplit.co/home"))]]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -218,8 +227,8 @@ async def web_login(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 def main() -> None:
-    with open('BOT_API_KEY', "r") as fp:
-        token = fp.read()
+    
+    token = get_bot_token()
     application = Application.builder().token(token).build()
 
     conv_handler = ConversationHandler(
