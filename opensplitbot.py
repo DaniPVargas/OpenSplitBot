@@ -245,6 +245,7 @@ def main() -> None:
                    MessageHandler(filters.ALL, handle_unexpected_input)],
     )
 
+    application.add_handler(CommandHandler("start", help_command))
     application.add_handler(conv_handler)
     application.add_handler(CommandHandler("balance", balance))
     application.add_handler(CommandHandler(
