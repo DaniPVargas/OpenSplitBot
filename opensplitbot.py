@@ -58,13 +58,15 @@ async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text(message, do_quote=False)
 
 
-def format_user_balance(balance: dict):
+def format_user_balance(balance):
     if not balance:
         return "You don't belong to any group account."
     else:
         message = ""
-        for g, d in balance.items():
-            message += f"Group \"{g}\": {d:.2f}€\n"
+        for info in balance:
+            group_name = info["group_name"]
+            amount = info["amount"]
+            message += f"Group \"{group_name}\": {amount:.2f}€\n"
         return message
 
 
