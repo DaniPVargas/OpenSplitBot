@@ -32,7 +32,7 @@ async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     token = get_bot_token()
     if chat_type == "private":
         username = update.message.from_user.username
-        url = f"{base_url}users/@{username}/balance"
+        url = f"{base_url}users/{username}/balance"
         headers = {"Content-Type": "application/json", "Authorization": token}
         response = requests.get(url, headers=headers)
         if response.status_code != 200:
@@ -81,15 +81,15 @@ def format_balance(balance: dict):
         if users_who_owe:
             message += "Users who owe money:\n"
             for n, b in users_who_owe.items():
-                message += f"{n} : {b:.2f}€\n"
+                message += f"@{n} : {b:.2f}€\n"
         if users_who_are_owed:
             message += "\nUsers who are owed money:\n"
             for n, b in users_who_are_owed.items():
-                message += f"{n} : {b:.2f}€\n"
+                message += f"@{n} : {b:.2f}€\n"
         if users_in_balance:
             message += "\nUsers who don't owe and aren't owed:\n"
             for n, b in users_in_balance.items():
-                message += f"{n} : {b:.2f}€\n"
+                message += f"@{n} : {b:.2f}€\n"
         return message
 
 
@@ -119,8 +119,8 @@ def format_exchanges(exchanges):
     else:
         message = "The following exchanges are needed to balance the group account:\n"
         for exchange in exchanges:
-            message += f"· {exchange['payer']} owes {exchange['amount']
-                :.2f}€ to {exchange['receiver']}\n"
+            message += f"· @{exchange['payer']} owes {exchange['amount']
+                :.2f}€ to @{exchange['receiver']}\n"
         return message
 
 
@@ -172,8 +172,8 @@ async def name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def payer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    context.chat_data['payer'] = update.message.parse_entity(
-        update.message.entities[0])
+    # [1:] removes the initial @ form the mention
+    context.chat_data['payer'] = update.message.parse_entity(update.message.entities[0])[1:]
     await update.message.reply_text('Perfect! Now enter the amount that was paid.',
                                     reply_markup=ForceReply(selective=True))
     return AMOUNT
@@ -188,8 +188,10 @@ async def amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def receivers(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    context.chat_data['receivers'] = list(set([update.message.parse_entity(
-        x) for x in update.message.entities if x.type == "mention"]))
+    # [1:] removes the initial @ form the mention
+    context.chat_data['receivers'] = list(set(
+        [update.message.parse_entity(x)[1:] for x in update.message.entities if x.type == "mention"]
+    ))
     body = {"name": context.chat_data['name'], "payer": context.chat_data['payer'],
             "amount": context.chat_data['amount'], "receivers": context.chat_data["receivers"]}
     group_id = update.message.chat["id"]
