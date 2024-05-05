@@ -100,6 +100,7 @@ async def calculate_exchanges(update: Update, context: ContextTypes.DEFAULT_TYPE
         await update.message.reply_text("Sorry, this function is only available for group chats.")
     else:
         group_id = update.message.chat["id"]
+        print(group_id)
         url = f"{base_url}groups/{group_id}/exchanges"
         headers = {"Content-Type": "application/json", "Authorization": token}
         response = requests.get(url, headers=headers)
