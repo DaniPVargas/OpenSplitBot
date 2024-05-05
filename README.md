@@ -16,11 +16,11 @@ Getting started with OpenSplitBot is as simple as typing its “OpenSplit” in 
 
 Once added, OpenSplit will automatically register the group in its database, and you're ready to wait to use it. The commands offered by OpenSplitBot are as follows:
 
-- <a>/help</a>: Lists all commands along with a brief description of them.
-- <a>/add_expense</a>: OpenSplitBot will start a guided conversation that allows you to add a new expense (name, payer, amount and receivers) to the group database.
-- <a>/balance</a>: Displays the current balance of the group members.
-- <a>/calculate_exchanges</a>: OpenSplitBot calculates for you the most efficient moves to balance the books.
-- <a>/web_login</a>: OpenSplitBot allows you to open our web interface, which centralizes all the information of the groups you belong to.
+- `/help`: Lists all commands along with a brief description of them.
+- `/add_expense`: OpenSplitBot will start a guided conversation that allows you to add a new expense (name, payer, amount and receivers) to the group database.
+- `/balance`: Displays the current balance of the group members.
+- `/calculate_exchanges`: OpenSplitBot calculates for you the most efficient moves to balance the books.
+- `/web_login`: OpenSplitBot allows you to open our web interface, which centralizes all the information of the groups you belong to.
 
 ## Other parts of the project
 
