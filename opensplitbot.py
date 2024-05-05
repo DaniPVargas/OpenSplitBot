@@ -208,7 +208,7 @@ async def handle_unexpected_input(update: Update, context: CallbackContext) -> N
 
 async def web_login(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Sends a message with three inline buttons attached."""
-    keyboard = [[InlineKeyboardButton("Login in web", login_url=LoginUrl("https://opensplit.netlify.app/home"))]]
+    keyboard = [[InlineKeyboardButton("Login in web", login_url=LoginUrl("https://www.opensplit.co/home"))]]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
